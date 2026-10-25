@@ -152,7 +152,7 @@ function extractStructuredTextLayer(
 /**
  * Exports the selected rectangular region of a PDF page as pure vector SVG using MuPDF
  */
-export async function exportRegionToVectorSvg(
+export async function exportRegionToSvg(
   rawPdfBytes: Uint8Array,
   pageIndex: number, // 0-indexed
   crop: CropRect,

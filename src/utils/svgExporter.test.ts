@@ -10,7 +10,7 @@
 // details.
 
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { sanitizeSvgXml, exportRegionToVectorSvg, downloadSvgFile } from './svgExporter';
+import { sanitizeSvgXml, exportRegionToSvg, downloadSvgFile } from './svgExporter';
 import { getMuPdf } from './mupdfHelper';
 
 /**
@@ -63,7 +63,7 @@ describe('SVG Exporter & XML Sanitization', () => {
     });
   });
 
-  describe('exportRegionToVectorSvg', () => {
+  describe('exportRegionToSvg', () => {
     let pdfBytes: Uint8Array;
 
     beforeAll(async () => {
@@ -72,7 +72,7 @@ describe('SVG Exporter & XML Sanitization', () => {
 
     it('extracts a vector region with authentic viewBox and dimensions', async () => {
       const crop = { x: 10, y: 10, width: 250, height: 180 };
-      const result = await exportRegionToVectorSvg(pdfBytes, 0, crop, 0, {
+      const result = await exportRegionToSvg(pdfBytes, 0, crop, 0, {
         backgroundColor: 'transparent',
         includeSelectableText: false,
       });
@@ -91,7 +91,7 @@ describe('SVG Exporter & XML Sanitization', () => {
 
     it('exports with transparent background by default (no white background rect)', async () => {
       const crop = { x: 0, y: 0, width: 100, height: 100 };
-      const result = await exportRegionToVectorSvg(pdfBytes, 0, crop, 0, {
+      const result = await exportRegionToSvg(pdfBytes, 0, crop, 0, {
         backgroundColor: 'transparent',
         includeSelectableText: false,
       });
@@ -101,7 +101,7 @@ describe('SVG Exporter & XML Sanitization', () => {
 
     it('inserts white background rect when backgroundColor is white', async () => {
       const crop = { x: 0, y: 0, width: 100, height: 100 };
-      const result = await exportRegionToVectorSvg(pdfBytes, 0, crop, 0, {
+      const result = await exportRegionToSvg(pdfBytes, 0, crop, 0, {
         backgroundColor: 'white',
         includeSelectableText: false,
       });
@@ -113,7 +113,7 @@ describe('SVG Exporter & XML Sanitization', () => {
       const crop = { x: 10, y: 10, width: 150, height: 120 };
 
       for (const rot of [0, 90, 180, 270]) {
-        const result = await exportRegionToVectorSvg(pdfBytes, 0, crop, rot, {
+        const result = await exportRegionToSvg(pdfBytes, 0, crop, rot, {
           backgroundColor: 'transparent',
           includeSelectableText: false,
         });
@@ -132,7 +132,7 @@ describe('SVG Exporter & XML Sanitization', () => {
       try {
         const invalidBytes = new Uint8Array([1, 2, 3, 4, 5]);
         await expect(
-          exportRegionToVectorSvg(invalidBytes, 0, { x: 0, y: 0, width: 100, height: 100 }, 0, {
+          exportRegionToSvg(invalidBytes, 0, { x: 0, y: 0, width: 100, height: 100 }, 0, {
             backgroundColor: 'transparent',
             includeSelectableText: false,
           })
