@@ -9,46 +9,24 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
 // details.
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { sanitizeSvgXml, exportRegionToVectorSvg, downloadSvgFile } from './svgExporter';
+import { getMuPdf } from './mupdfHelper';
 
 /**
- * Creates a valid, minimal standard PDF 1.4 byte stream containing vector paths
+ * Creates a valid, minimal standard PDF byte stream containing vector paths
  */
-function createTestPdfBytes(): Uint8Array {
-  const pdfString = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 500 400] /Contents 4 0 R >>
-endobj
-4 0 obj
-<< /Length 58 >>
-stream
-0 0 1 rg
-10 10 120 90 re f
-1 0 0 RG
-3 w
-200 50 m 300 150 l S
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000204 00000 n 
-trailer
-<< /Size 5 /Root 1 0 R >>
-startxref
-313
-%%EOF`;
-  return new TextEncoder().encode(pdfString);
+async function createTestPdfBytes(): Promise<Uint8Array> {
+  const mupdf = await getMuPdf();
+  const doc = new mupdf.PDFDocument();
+  const pageObj = doc.addPage(
+    [0, 0, 500, 400],
+    0,
+    doc.newDictionary(),
+    '0 0 1 rg 10 10 120 90 re f 1 0 0 RG 3 w 200 50 m 300 150 l S'
+  );
+  doc.insertPage(-1, pageObj);
+  return doc.saveToBuffer('').asUint8Array();
 }
 
 describe('SVG Exporter & XML Sanitization', () => {
@@ -86,7 +64,11 @@ describe('SVG Exporter & XML Sanitization', () => {
   });
 
   describe('exportRegionToVectorSvg', () => {
-    const pdfBytes = createTestPdfBytes();
+    let pdfBytes: Uint8Array;
+
+    beforeAll(async () => {
+      pdfBytes = await createTestPdfBytes();
+    });
 
     it('extracts a vector region with authentic viewBox and dimensions', async () => {
       const crop = { x: 10, y: 10, width: 250, height: 180 };
@@ -143,13 +125,21 @@ describe('SVG Exporter & XML Sanitization', () => {
     });
 
     it('throws error when passed corrupted or invalid PDF bytes', async () => {
-      const invalidBytes = new Uint8Array([1, 2, 3, 4, 5]);
-      await expect(
-        exportRegionToVectorSvg(invalidBytes, 0, { x: 0, y: 0, width: 100, height: 100 }, 0, {
-          backgroundColor: 'transparent',
-          includeSelectableText: false,
-        })
-      ).rejects.toThrow();
+      // MuPDF outputs diagnostics when attempting to repair invalid PDF bytes.
+      // We route MuPDF's log handler to a no-op so expected failure logging does not pollute test output.
+      const mupdf = await getMuPdf();
+      mupdf.setLog(() => {});
+      try {
+        const invalidBytes = new Uint8Array([1, 2, 3, 4, 5]);
+        await expect(
+          exportRegionToVectorSvg(invalidBytes, 0, { x: 0, y: 0, width: 100, height: 100 }, 0, {
+            backgroundColor: 'transparent',
+            includeSelectableText: false,
+          })
+        ).rejects.toThrow();
+      } finally {
+        mupdf.setLog(null);
+      }
     });
   });
 
