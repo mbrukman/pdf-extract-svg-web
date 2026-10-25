@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { SelectionRect } from '../types/pdf';
 import {
-  exportRegionToVectorSvg,
+  exportRegionToSvg,
   downloadSvgFile,
   type ExportResult,
   type SvgExportOptions
@@ -73,7 +73,7 @@ export const SvgExportModal: React.FC<SvgExportModalProps> = ({
           filename: filename || 'crop_selection',
         };
 
-        const result = await exportRegionToVectorSvg(
+        const result = await exportRegionToSvg(
           rawPdfBytes,
           pageNumber - 1, // 0-indexed
           selection,
