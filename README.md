@@ -1,5 +1,10 @@
 # PDF extract SVG web
 
+[![pdf-extract-svg-web-badge]][pdf-extract-svg-web-url]
+
+[pdf-extract-svg-web-badge]: https://github.com/mbrukman/pdf-extract-svg-web/actions/workflows/ci-cd.yaml/badge.svg?branch=main
+[pdf-extract-svg-web-url]: https://github.com/mbrukman/pdf-extract-svg-web/actions/workflows/ci-cd.yaml?query=branch%3Amain
+
 This app lets you extract a region from a PDF to SVG, interactively, in the browser.
 
 > [!NOTE]
@@ -7,7 +12,15 @@ This app lets you extract a region from a PDF to SVG, interactively, in the brow
 > SVG will contain that rasterized content as-is. This app does not auto-vectorize
 > raster data.
 
-## Running locally
+## Live app
+
+Visit **https://mbrukman.github.io/pdf-extract-svg-web/** to use the app quickly
+and easily without downloading, building, or deploying code anywhere.
+
+All processing happens client-side in your browser, so your PDFs never leave
+your computer.
+
+## Build and run locally
 
 1. Install [Bun](https://bun.sh/)
 2. Run `bun install` to install dependencies
